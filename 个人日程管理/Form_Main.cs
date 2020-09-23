@@ -1101,7 +1101,7 @@ namespace 个人日程管理
             var taskLinker = new Form_TaskLinker((int)checkBox_Event_LinkTask.Tag);
             taskLinker.ShowDialog();
             checkBox_Event_LinkTask.Tag = taskLinker.taskId;
-            checkBox_Event_LinkTask.Checked = !(taskLinker.DialogResult == DialogResult.No || taskLinker.taskId == -1);
+            checkBox_Event_LinkTask.Checked = !(taskLinker.result == DialogResult.No || taskLinker.taskId == -1);
         }
         
         private bool EventDateCheckScriptCompile()

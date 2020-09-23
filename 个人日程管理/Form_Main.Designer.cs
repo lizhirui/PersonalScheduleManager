@@ -82,10 +82,10 @@
             this.textBox_Event_Title = new System.Windows.Forms.TextBox();
             this.listBox_Event_List = new System.Windows.Forms.ListBox();
             this.tabPage_Schedule = new System.Windows.Forms.TabPage();
+            this.checkBox_Schedule_Remind = new System.Windows.Forms.CheckBox();
             this.button_Schedule_Search = new System.Windows.Forms.Button();
             this.dateTimePicker_Schedule_EndDate = new System.Windows.Forms.DateTimePicker();
             this.dateTimePicker_Schedule_StartDate = new System.Windows.Forms.DateTimePicker();
-            this.checkBox_Schedule_Remind = new System.Windows.Forms.CheckBox();
             this.tabControl_Main.SuspendLayout();
             this.tabPage_Memo.SuspendLayout();
             this.tabPage_Task.SuspendLayout();
@@ -632,6 +632,19 @@
             this.tabPage_Schedule.UseVisualStyleBackColor = true;
             this.tabPage_Schedule.SizeChanged += new System.EventHandler(this.tabPage_Schedule_SizeChanged);
             // 
+            // checkBox_Schedule_Remind
+            // 
+            this.checkBox_Schedule_Remind.AutoSize = true;
+            this.checkBox_Schedule_Remind.Checked = true;
+            this.checkBox_Schedule_Remind.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox_Schedule_Remind.Location = new System.Drawing.Point(570, 16);
+            this.checkBox_Schedule_Remind.Name = "checkBox_Schedule_Remind";
+            this.checkBox_Schedule_Remind.Size = new System.Drawing.Size(48, 16);
+            this.checkBox_Schedule_Remind.TabIndex = 16;
+            this.checkBox_Schedule_Remind.Text = "提醒";
+            this.checkBox_Schedule_Remind.UseVisualStyleBackColor = true;
+            this.checkBox_Schedule_Remind.CheckedChanged += new System.EventHandler(this.checkBox_Schedule_Remind_CheckedChanged);
+            // 
             // button_Schedule_Search
             // 
             this.button_Schedule_Search.Location = new System.Drawing.Point(463, 11);
@@ -656,19 +669,6 @@
             this.dateTimePicker_Schedule_StartDate.Size = new System.Drawing.Size(200, 21);
             this.dateTimePicker_Schedule_StartDate.TabIndex = 13;
             // 
-            // checkBox_Schedule_Remind
-            // 
-            this.checkBox_Schedule_Remind.AutoSize = true;
-            this.checkBox_Schedule_Remind.Checked = true;
-            this.checkBox_Schedule_Remind.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox_Schedule_Remind.Location = new System.Drawing.Point(570, 16);
-            this.checkBox_Schedule_Remind.Name = "checkBox_Schedule_Remind";
-            this.checkBox_Schedule_Remind.Size = new System.Drawing.Size(48, 16);
-            this.checkBox_Schedule_Remind.TabIndex = 16;
-            this.checkBox_Schedule_Remind.Text = "提醒";
-            this.checkBox_Schedule_Remind.UseVisualStyleBackColor = true;
-            this.checkBox_Schedule_Remind.CheckedChanged += new System.EventHandler(this.checkBox_Schedule_Remind_CheckedChanged);
-            // 
             // Form_Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -677,7 +677,7 @@
             this.Controls.Add(this.tabControl_Main);
             this.Name = "Form_Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "个人日程管理 1.0 beta 202009230757 by 李志锐 QQ：859067292";
+            this.Text = "个人日程管理 1.1 beta 202009231735 by 李志锐 QQ：859067292";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_Main_FormClosed);
             this.Load += new System.EventHandler(this.Form_Main_Load);
             this.SizeChanged += new System.EventHandler(this.Form_Main_SizeChanged);
