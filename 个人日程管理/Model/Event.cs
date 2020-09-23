@@ -28,7 +28,7 @@ namespace 个人日程管理.Model
 
         public override string ToString()
         {
-            return title + " - " + createdTime.ToString("yyyy/MM/dd hh:mm:ss");
+            return title + " - " + createdTime.ToString("yyyy/MM/dd HH:mm:ss");
         }
     }
 }

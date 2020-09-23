@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -10,7 +11,18 @@ namespace 个人日程管理
 {
     class Global
     {
-        public const string connectionString = "Server=localhost;Database=schedulemanager;Uid=schedulemanager;Pwd=schedulemanagerlzr";
+        public static readonly string connectionString = "Server=localhost;Database=schedulemanager;Uid=schedulemanager;Pwd=schedulemanagerlzr";
+
+        static Global()
+        {
+            var mcstb = new MySqlConnectionStringBuilder();
+            mcstb.Keepalive = 60;
+            mcstb.UserID = "schedulemanager";
+            mcstb.Password = "schedulemanagerlzr";
+            mcstb.Database = "schedulemanager";
+            mcstb.Server = "localhost";
+            connectionString = mcstb.ConnectionString;
+        }
 
         public static void Error(string text)
         {

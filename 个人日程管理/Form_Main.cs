@@ -598,7 +598,7 @@ namespace 个人日程管理
                     {
                         item.SubItems.Add(GetSpeedString(titem.finishedProgress * 100.0d / titem.totalProgress,"%",DateTime.Now - titem._firstStartTime));
                         item.SubItems.Add(GetSpeedString(100.0d - titem.finishedProgress * 100.0d / titem.totalProgress,"%",titem._lastEndTime - DateTime.Now));
-                        item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd hh:mm:ss"));
+                        item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd HH:mm:ss"));
                     }
                     else
                     {
@@ -606,10 +606,10 @@ namespace 个人日程管理
                         item.SubItems.Add(GetSpeedString(titem.totalProgress - titem.finishedProgress,titem.progressUnit,titem._lastEndTime - DateTime.Now));
                     }
 
-                    item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd hh:mm:ss"));
+                    item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd HH:mm:ss"));
                 }
 
-                item.SubItems.Add(titem.createdTime.ToString("yyyy/MM/dd hh:mm:ss"));
+                item.SubItems.Add(titem.createdTime.ToString("yyyy/MM/dd HH:mm:ss"));
             }
         }
 
@@ -856,7 +856,7 @@ namespace 个人日程管理
 
             foreach(var titem in recordInfoService.GetList(new DateTime(dateTimePicker_Record_StartTime.Value.Year,dateTimePicker_Record_StartTime.Value.Month,dateTimePicker_Record_StartTime.Value.Day,0,0,0),new DateTime(dateTimePicker_Record_EndTime.Value.Year,dateTimePicker_Record_EndTime.Value.Month,dateTimePicker_Record_EndTime.Value.Day,23,59,59)))
             {
-                var item = new ListViewItem(titem.time.ToString("yyyy/MM/dd hh:mm:ss"));
+                var item = new ListViewItem(titem.time.ToString("yyyy/MM/dd HH:mm:ss"));
                 listView_Record_List.Items.Add(item);
                 item.SubItems.Add(titem.Description);
             }
@@ -1346,6 +1346,50 @@ namespace 个人日程管理
             {
                 foreach(var item in scheduleList[i])
                 {
+                    if(tableData[item.row,i] == null || !tableData[item.row,i].Nil)
+                    {
+                        if(tableData[item.row,i] != null)
+                        {
+                            Global.Error("发生事件冲突：\"" + tableData[item.row,i].parent.title + "\"与\"" + item.parent.title + "\"在" + startDate.AddDays(i).ToString("yyyy/MM/dd") + " [" + rowLabelList[item.row].start + "," + rowLabelList[tableData[item.row,i].row + tableData[item.row,i].rowNum - 1].end + ")处发生时间冲突！");
+
+                            if(Global.Confirm("发生错误，是否终止生成日程表？"))
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            var conflictItem = null as EventScheduleUnit;
+
+                            for(var j = item.row - 1;j >= 0;j--)
+                            {
+                                if(tableData[j,i] != null)
+                                {
+                                    if(!tableData[j,i].Nil)
+                                    {
+                                        conflictItem = tableData[j,i];
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if(conflictItem != null)
+                            {
+                                Global.Error("发生事件冲突：\"" + conflictItem.parent.title + "\"与\"" + item.parent.title + "\"在" + startDate.AddDays(i).ToString("yyyy/MM/dd") + " [" + rowLabelList[item.row].start + "," + rowLabelList[conflictItem.row + conflictItem.rowNum - 1].end + ")处发生时间冲突！");
+                            }
+                            else
+                            {
+                                Global.Error("发生事件冲突：\"" + conflictItem.parent.title + "\"与未知事件在" + startDate.AddDays(i).ToString("yyyy/MM/dd") + " [" + rowLabelList[item.row].start + ",未知但<=" + rowLabelList[item.row].end + ")处发生时间冲突！");
+                            }
+
+                            if(Global.Confirm("发生错误，是否终止生成日程表？"))
+                            {
+                                return;
+                            }
+                        }
+                    }
+
                     tableData[item.row,i] = item;
 
                     if(item.rowNum > 1)

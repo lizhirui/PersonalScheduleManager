@@ -24,9 +24,9 @@ namespace 个人日程管理
                 db.Init(Global.connectionString,DbProviderType.MySql);
                 db.Open();
             }
-            catch
+            catch(Exception e)
             {
-                Global.Error("数据库连接失败！");
+                Global.Error("数据库连接失败！\r\n" + e.Message + "\r\n" + e.StackTrace);
                 Environment.Exit(-1);
             }
 

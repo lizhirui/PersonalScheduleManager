@@ -677,7 +677,7 @@
             this.Controls.Add(this.tabControl_Main);
             this.Name = "Form_Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "个人日程管理 1.1 beta 202009231735 by 李志锐 QQ：859067292";
+            this.Text = "个人日程管理 1.2 beta 202009240738 by 李志锐 QQ：859067292";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_Main_FormClosed);
             this.Load += new System.EventHandler(this.Form_Main_Load);
             this.SizeChanged += new System.EventHandler(this.Form_Main_SizeChanged);
