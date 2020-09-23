@@ -239,6 +239,14 @@ namespace LiZhiruiToolSet
                 foreach(var field in fields)
                 {
                     var name = field.Name;
+
+                    if(name.Length > 0)
+                    {
+                        if(name[0] == '_')
+                        {
+                            continue;
+                        }
+                    }
                     
                     try
                     {
@@ -377,6 +385,11 @@ namespace LiZhiruiToolSet
                     continue;
                 }
 
+                if(field.Name.Length > 0 && field.Name[0] == '_')
+                {
+                    continue;
+                }
+
                 fieldList.Append(field.Name);
                 fieldList.Append(',');
                 valueList.Append('@' + field.Name);
@@ -404,6 +417,11 @@ namespace LiZhiruiToolSet
             foreach(var field in fields)
             {
                 if(field.Name.ToLower() == "id")
+                {
+                    continue;
+                }
+
+                if(field.Name.Length > 0 && field.Name[0] == '_')
                 {
                     continue;
                 }

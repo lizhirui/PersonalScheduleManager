@@ -16,9 +16,10 @@ namespace 个人日程管理.Model
         public int finishedProgress;
         public int totalProgress;
         public string progressUnit;
-        public bool hasChild;
-        public bool hasLinkedEvent;
-        public DateTime firstStartTime;
-        public DateTime lastEndTime;
+
+        public bool _hasChild;
+        public bool _hasLinkedEvent;
+        public DateTime _firstStartTime;
+        public DateTime _lastEndTime;
     }
 }

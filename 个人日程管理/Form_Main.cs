@@ -586,7 +586,7 @@ namespace 个人日程管理
                 item.SubItems.Add(titem.finishedProgress + titem.progressUnit + "/" + titem.totalProgress + titem.progressUnit);
                 item.SubItems.Add(Math.Round(titem.finishedProgress * 100.0d / titem.totalProgress,2) + "%");
                 
-                if(!titem.hasLinkedEvent)
+                if(!titem._hasLinkedEvent)
                 {
                     item.SubItems.Add("无对应事件");
                     item.SubItems.Add("无对应事件");
@@ -594,19 +594,19 @@ namespace 个人日程管理
                 }
                 else
                 {
-                    if(titem.hasChild)
+                    if(titem._hasChild)
                     {
-                        item.SubItems.Add(GetSpeedString(titem.finishedProgress * 100.0d / titem.totalProgress,"%",DateTime.Now - titem.firstStartTime));
-                        item.SubItems.Add(GetSpeedString(100.0d - titem.finishedProgress * 100.0d / titem.totalProgress,"%",titem.lastEndTime - DateTime.Now));
-                        item.SubItems.Add(titem.lastEndTime.ToString("yyyy/MM/dd hh:mm:ss"));
+                        item.SubItems.Add(GetSpeedString(titem.finishedProgress * 100.0d / titem.totalProgress,"%",DateTime.Now - titem._firstStartTime));
+                        item.SubItems.Add(GetSpeedString(100.0d - titem.finishedProgress * 100.0d / titem.totalProgress,"%",titem._lastEndTime - DateTime.Now));
+                        item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd hh:mm:ss"));
                     }
                     else
                     {
-                        item.SubItems.Add(GetSpeedString(titem.finishedProgress,titem.progressUnit,DateTime.Now - titem.firstStartTime));
-                        item.SubItems.Add(GetSpeedString(titem.totalProgress - titem.finishedProgress,titem.progressUnit,titem.lastEndTime - DateTime.Now));
+                        item.SubItems.Add(GetSpeedString(titem.finishedProgress,titem.progressUnit,DateTime.Now - titem._firstStartTime));
+                        item.SubItems.Add(GetSpeedString(titem.totalProgress - titem.finishedProgress,titem.progressUnit,titem._lastEndTime - DateTime.Now));
                     }
 
-                    item.SubItems.Add(titem.lastEndTime.ToString("yyyy/MM/dd hh:mm:ss"));
+                    item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd hh:mm:ss"));
                 }
 
                 item.SubItems.Add(titem.createdTime.ToString("yyyy/MM/dd hh:mm:ss"));

@@ -70,15 +70,15 @@ namespace 个人日程管理.Service
 
             if(eventList.Length == 0)
             {
-                task.hasLinkedEvent = false;
-                task.firstStartTime = DateTime.MaxValue;
-                task.lastEndTime = DateTime.MinValue;
+                task._hasLinkedEvent = false;
+                task._firstStartTime = DateTime.MaxValue;
+                task._lastEndTime = DateTime.MinValue;
             }
             else
             {
-                task.hasLinkedEvent = true;
-                task.firstStartTime = DateTime.MaxValue;
-                task.lastEndTime = DateTime.MinValue;
+                task._hasLinkedEvent = true;
+                task._firstStartTime = DateTime.MaxValue;
+                task._lastEndTime = DateTime.MinValue;
 
                 foreach(var item in eventList)
                 {
@@ -87,8 +87,8 @@ namespace 个人日程管理.Service
                     startTime = new DateTime(startTime.Year,startTime.Month,startTime.Day,item.startTime.Hour,item.startTime.Minute,item.startTime.Second);
                     var endTime = fm.GetEndDate();
                     endTime = new DateTime(endTime.Year,endTime.Month,endTime.Day,item.endTime.Hour,item.endTime.Minute,item.endTime.Second);
-                    task.firstStartTime = startTime < task.firstStartTime ? startTime : task.firstStartTime;
-                    task.lastEndTime = endTime > task.lastEndTime ? endTime : task.lastEndTime;
+                    task._firstStartTime = startTime < task._firstStartTime ? startTime : task._firstStartTime;
+                    task._lastEndTime = endTime > task._lastEndTime ? endTime : task._lastEndTime;
                 }
             }
         }
@@ -97,7 +97,7 @@ namespace 个人日程管理.Service
         {
             hasChild = false;
             var item = dao.GetInfo(id);
-            item.hasChild = false;
+            item._hasChild = false;
 
             if(item == null)
             {
@@ -110,7 +110,7 @@ namespace 个人日程管理.Service
             if(tlist.Length > 0)
             {
                 hasChild = true;
-                item.hasChild = true;
+                item._hasChild = true;
                 item.finishedProgress = 0;
                 item.totalProgress = 0;
 
@@ -119,11 +119,11 @@ namespace 个人日程管理.Service
                     item.finishedProgress += (int)(titem.finishedProgress * 10000.0d / titem.totalProgress);
                     item.totalProgress += 10000;
 
-                    if(titem.hasLinkedEvent)
+                    if(titem._hasLinkedEvent)
                     {
-                        item.hasLinkedEvent = true;
-                        item.firstStartTime = titem.firstStartTime < item.firstStartTime ? titem.firstStartTime : item.firstStartTime;
-                        item.lastEndTime = titem.lastEndTime > item.lastEndTime ? titem.lastEndTime : item.lastEndTime;
+                        item._hasLinkedEvent = true;
+                        item._firstStartTime = titem._firstStartTime < item._firstStartTime ? titem._firstStartTime : item._firstStartTime;
+                        item._lastEndTime = titem._lastEndTime > item._lastEndTime ? titem._lastEndTime : item._lastEndTime;
                     }
                 }
             }
@@ -150,12 +150,12 @@ namespace 个人日程管理.Service
             foreach(var item in rlist)
             {
                 FillTaskAdvancedFields(item);
-                item.hasChild = false;
+                item._hasChild = false;
                 var tlist = GetAllChildList(item.id);
 
                 if(tlist.Length > 0)
                 {
-                    item.hasChild = true;
+                    item._hasChild = true;
                     rtlist.AddRange(tlist);
                     item.finishedProgress = 0;
                     item.totalProgress = 0;
@@ -166,11 +166,11 @@ namespace 个人日程管理.Service
                         item.finishedProgress += (int)(titem.finishedProgress * 10000.0d / titem.totalProgress);
                         item.totalProgress += 10000;
 
-                        if(titem.hasLinkedEvent)
+                        if(titem._hasLinkedEvent)
                         {
-                            item.hasLinkedEvent = true;
-                            item.firstStartTime = titem.firstStartTime < item.firstStartTime ? titem.firstStartTime : item.firstStartTime;
-                            item.lastEndTime = titem.lastEndTime > item.lastEndTime ? titem.lastEndTime : item.lastEndTime;
+                            item._hasLinkedEvent = true;
+                            item._firstStartTime = titem._firstStartTime < item._firstStartTime ? titem._firstStartTime : item._firstStartTime;
+                            item._lastEndTime = titem._lastEndTime > item._lastEndTime ? titem._lastEndTime : item._lastEndTime;
                         }
                     }
                 }
