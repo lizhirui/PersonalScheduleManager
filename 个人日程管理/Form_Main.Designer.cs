@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.tabControl_Main = new System.Windows.Forms.TabControl();
             this.tabPage_Memo = new System.Windows.Forms.TabPage();
             this.button_Memo_Update = new System.Windows.Forms.Button();
@@ -86,6 +87,9 @@
             this.button_Schedule_Search = new System.Windows.Forms.Button();
             this.dateTimePicker_Schedule_EndDate = new System.Windows.Forms.DateTimePicker();
             this.dateTimePicker_Schedule_StartDate = new System.Windows.Forms.DateTimePicker();
+            this.columnHeader_FirstTaskStartTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.comboBox_Task_Mode = new System.Windows.Forms.ComboBox();
+            this.toolTip_Tip = new System.Windows.Forms.ToolTip(this.components);
             this.tabControl_Main.SuspendLayout();
             this.tabPage_Memo.SuspendLayout();
             this.tabPage_Task.SuspendLayout();
@@ -190,6 +194,7 @@
             // 
             // panel_Task_Data
             // 
+            this.panel_Task_Data.Controls.Add(this.comboBox_Task_Mode);
             this.panel_Task_Data.Controls.Add(this.button_Task_Update);
             this.panel_Task_Data.Controls.Add(this.button_Task_Add);
             this.panel_Task_Data.Controls.Add(this.textBox_Task_ProgressPercent);
@@ -202,7 +207,7 @@
             this.panel_Task_Data.Controls.Add(this.label2);
             this.panel_Task_Data.Controls.Add(this.textBox_Task_Title);
             this.panel_Task_Data.Controls.Add(this.label1);
-            this.panel_Task_Data.Location = new System.Drawing.Point(230, 94);
+            this.panel_Task_Data.Location = new System.Drawing.Point(298, 7);
             this.panel_Task_Data.Name = "panel_Task_Data";
             this.panel_Task_Data.Size = new System.Drawing.Size(519, 390);
             this.panel_Task_Data.TabIndex = 2;
@@ -323,6 +328,7 @@
             this.columnHeader_Task_FinishSpeed,
             this.columnHeader_Task_RemainedTaskFinishMinimumSpeed,
             this.columnHeader_LastTaskFinishTime,
+            this.columnHeader_FirstTaskStartTime,
             this.columnHeader_Task_List_CreatedTime});
             this.listView_Task_Item.FullRowSelect = true;
             this.listView_Task_Item.GridLines = true;
@@ -342,7 +348,7 @@
             // columnHeader_Task_List_Progress
             // 
             this.columnHeader_Task_List_Progress.Text = "进度";
-            this.columnHeader_Task_List_Progress.Width = 100;
+            this.columnHeader_Task_List_Progress.Width = 150;
             // 
             // columnHeader_Task_List_ProgressPercent
             // 
@@ -669,6 +675,27 @@
             this.dateTimePicker_Schedule_StartDate.Size = new System.Drawing.Size(200, 21);
             this.dateTimePicker_Schedule_StartDate.TabIndex = 13;
             // 
+            // columnHeader_FirstTaskStartTime
+            // 
+            this.columnHeader_FirstTaskStartTime.Text = "最早任务开始时间";
+            this.columnHeader_FirstTaskStartTime.Width = 150;
+            // 
+            // comboBox_Task_Mode
+            // 
+            this.comboBox_Task_Mode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_Task_Mode.Items.AddRange(new object[] {
+            "正常模式",
+            "插入模式"});
+            this.comboBox_Task_Mode.Location = new System.Drawing.Point(382, 353);
+            this.comboBox_Task_Mode.Name = "comboBox_Task_Mode";
+            this.comboBox_Task_Mode.Size = new System.Drawing.Size(121, 20);
+            this.comboBox_Task_Mode.TabIndex = 12;
+            // 
+            // toolTip_Tip
+            // 
+            this.toolTip_Tip.IsBalloon = true;
+            this.toolTip_Tip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            // 
             // Form_Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -677,7 +704,7 @@
             this.Controls.Add(this.tabControl_Main);
             this.Name = "Form_Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "个人日程管理 1.3 beta 202009241119 by 李志锐 QQ：859067292";
+            this.Text = "个人日程管理 1.4 beta 202009242058 by 李志锐 QQ：859067292";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_Main_FormClosed);
             this.Load += new System.EventHandler(this.Form_Main_Load);
             this.SizeChanged += new System.EventHandler(this.Form_Main_SizeChanged);
@@ -756,5 +783,8 @@
         private System.Windows.Forms.DateTimePicker dateTimePicker_Schedule_StartDate;
         private System.Windows.Forms.CheckBox checkBox_Event_LinkTask;
         private System.Windows.Forms.CheckBox checkBox_Schedule_Remind;
+        private System.Windows.Forms.ColumnHeader columnHeader_FirstTaskStartTime;
+        private System.Windows.Forms.ComboBox comboBox_Task_Mode;
+        private System.Windows.Forms.ToolTip toolTip_Tip;
     }
 }

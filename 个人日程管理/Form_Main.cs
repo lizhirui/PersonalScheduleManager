@@ -49,6 +49,9 @@ namespace 个人日程管理
         public ChromiumWebBrowser scheduleTable = null;
         private Thread RemindThread = null;
 
+        private const int Task_Mode_Normal = 0;
+        private const int Task_Mode_Insert = 1;
+
         private enum ThreadControlCmd
         {
             Start,
@@ -274,6 +277,15 @@ namespace 个人日程管理
             RemindThread = new Thread(new ThreadStart(RemindThreadEntry));
             RemindThread.Start();
             checkBox_Schedule_Remind_CheckedChanged(checkBox_Schedule_Remind,new EventArgs());
+            comboBox_Task_Mode.SelectedIndex = 0;
+            
+            toolTip_Tip.SetToolTip(listBox_Memo_List,"按Delete键可删除对应的项");
+            toolTip_Tip.SetToolTip(treeView_Task_Dir,"按Delete键可删除对应的项，按鼠标右键可以在当前项编辑界面与子任务详情列表之间切换");
+            toolTip_Tip.SetToolTip(listBox_Event_List,"按Delete键可删除对应的项");
+            var formulaEditorTooltip = new System.Windows.Controls.ToolTip();
+            formulaEditorTooltip.Content = "按F9键可打开脚本助手\ncheckDate用于检查一个特定的日期是否属于该日程\ngetStartDate与getEndDate用于限定属于该日程的日期范围";
+            formulaEditor.ToolTip = formulaEditorTooltip;
+            toolTip_Tip.SetToolTip(button_Schedule_Search,"若事件过多或日期范围过长，查询可能需要一些时间，请耐心等待");
         }
 
         private void Form_Main_Load(object sender,EventArgs e)
@@ -498,9 +510,11 @@ namespace 个人日程管理
             button_Task_Add.Top += deltaHeight;
             button_Task_Update.Left = panel_Task_Data.ClientRectangle.Left + (panel_Task_Data.ClientRectangle.Width >> 1) + 20;
             button_Task_Update.Top += deltaHeight;
+            comboBox_Task_Mode.Left = button_Task_Update.Right + 20;
+            comboBox_Task_Mode.Top = button_Task_Update.Top;
         }
 
-        private bool SelectTask_DFS(Model.Task task,TreeNodeCollection CurNodes,TreeNode ParentNode,bool expandDirectChild)
+        private bool SelectTask_DFS(Model.Task task,TreeNodeCollection CurNodes,TreeNode ParentNode,bool expandDirectChild,bool expandSelfWhenExpandDirectChild)
         {
             for(var i = 0;i < CurNodes.Count;i++)
             {
@@ -508,7 +522,7 @@ namespace 个人日程管理
                 {
                     if(expandDirectChild && CurNodes[i].Nodes.Count > 0)
                     {
-                        treeView_Task_Dir.SelectedNode = CurNodes[i].Nodes[0];
+                        treeView_Task_Dir.SelectedNode = expandSelfWhenExpandDirectChild ? CurNodes[i] : CurNodes[i].Nodes[0];
                         CurNodes[i].Expand();
                     }
                     else
@@ -525,7 +539,7 @@ namespace 个人日程管理
                     return true;
                 }
                 
-                if(SelectTask_DFS(task,CurNodes[i].Nodes,CurNodes[i],expandDirectChild))
+                if(SelectTask_DFS(task,CurNodes[i].Nodes,CurNodes[i],expandDirectChild,expandSelfWhenExpandDirectChild))
                 {
                     return true;
                 }
@@ -534,11 +548,11 @@ namespace 个人日程管理
             return false;
         }
 
-        private void SelectTask(Model.Task task,bool expandDirectChild = false)
+        private void SelectTask(Model.Task task,bool expandDirectChild = false,bool expandSelfWhenExpandDirectChild = false)
         {
             if(task != null)
             {
-                SelectTask_DFS(task,treeView_Task_Dir.Nodes,null,expandDirectChild);
+                SelectTask_DFS(task,treeView_Task_Dir.Nodes,null,expandDirectChild,expandSelfWhenExpandDirectChild);
             }
         }
 
@@ -584,11 +598,21 @@ namespace 个人日程管理
                 item.Name = titem.id + "";
                 item.Text = titem.title;
                 listView_Task_Item.Items.Add(item);
-                item.SubItems.Add(titem.finishedProgress + titem.progressUnit + "/" + titem.totalProgress + titem.progressUnit);
+
+                if(!titem._hasChild)
+                {
+                    item.SubItems.Add(titem.finishedProgress + titem.progressUnit + "/" + titem.totalProgress + titem.progressUnit);
+                }
+                else
+                {
+                    item.SubItems.Add("因有子任务，本项无意义");
+                }
+
                 item.SubItems.Add(Math.Round(titem.finishedProgress * 100.0d / titem.totalProgress,2) + "%");
                 
                 if(!titem._hasLinkedEvent)
                 {
+                    item.SubItems.Add("无对应事件");
                     item.SubItems.Add("无对应事件");
                     item.SubItems.Add("无对应事件");
                     item.SubItems.Add("无对应事件");
@@ -608,6 +632,7 @@ namespace 个人日程管理
                     }
 
                     item.SubItems.Add(titem._lastEndTime.ToString("yyyy/MM/dd HH:mm:ss"));
+                    item.SubItems.Add(titem._firstStartTime.ToString("yyyy/MM/dd HH:mm:ss"));
                 }
 
                 item.SubItems.Add(titem.createdTime.ToString("yyyy/MM/dd HH:mm:ss"));
@@ -621,6 +646,11 @@ namespace 个人日程管理
 
         private void treeView_Task_Dir_BeforeSelect(object sender,TreeViewCancelEventArgs e)
         {
+            if(comboBox_Task_Mode.SelectedIndex == Task_Mode_Insert)
+            {
+                return;
+            }
+
             if(!taskModified || Global.Confirm("是否要抛弃当前输入内容？"))
             {
                 if(e.Node != null && e.Node.Tag != null)
@@ -702,12 +732,33 @@ namespace 个人日程管理
 
             taskInfoService.Add(task);
             taskModified = false;
-            UpdateTaskList();
-            SelectTask(task);
+
+            switch(comboBox_Task_Mode.SelectedIndex)
+            {
+                case Task_Mode_Normal:
+                    UpdateTaskList();
+                    SelectTask(task);
+                    break;
+
+                case Task_Mode_Insert:
+                    UpdateTaskList();
+                    SelectTask(new Model.Task{id = task.parentId},true,true);
+                    break;
+
+                default:
+                    Global.Error("非法的模式！");
+                    break;
+            }
         }
 
         private void button_Task_Update_Click(object sender,EventArgs e)
         {
+            if(comboBox_Task_Mode.SelectedIndex != Task_Mode_Normal)
+            {
+                Global.Error("当前未处于正常模式，不能更新！");
+                return;
+            }
+
             if(taskCurrentItem == null)
             {
                 Global.Error("无可更新项！");
@@ -1511,7 +1562,7 @@ namespace 个人日程管理
                 RemindThreadMsgInQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Stop});
                 var tick = Environment.TickCount;
 
-                while(RemindThreadMsgOutQueue.Count == 0 && (Environment.TickCount - tick) < 2000)
+                while(RemindThreadMsgOutQueue.Count == 0)
                 {
                     Thread.Sleep(100);
                 }

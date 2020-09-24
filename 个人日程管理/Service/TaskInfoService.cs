@@ -84,9 +84,9 @@ namespace 个人日程管理.Service
                 {
                     var fm = new FormulaManager(item.remindFormula);
                     var startTime = fm.GetStartDate();
-                    startTime = new DateTime(startTime.Year,startTime.Month,startTime.Day,item.startTime.Hour,item.startTime.Minute,item.startTime.Second);
+                    startTime = new DateTime(startTime.Year,startTime.Month,startTime.Day,item.startTime.Hour,item.startTime.Minute,0);
                     var endTime = fm.GetEndDate();
-                    endTime = new DateTime(endTime.Year,endTime.Month,endTime.Day,item.endTime.Hour,item.endTime.Minute,item.endTime.Second);
+                    endTime = new DateTime(endTime.Year,endTime.Month,endTime.Day,item.endTime.Hour,item.endTime.Minute,59);
                     task._firstStartTime = startTime < task._firstStartTime ? startTime : task._firstStartTime;
                     task._lastEndTime = endTime > task._lastEndTime ? endTime : task._lastEndTime;
                 }

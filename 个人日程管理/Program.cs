@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,6 +18,15 @@ namespace 个人日程管理
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            var isAppYetNotRunning = false;
+            var mutex = new Mutex(true,"$Lizhirui$PersonalScheduleManager$000001$",out isAppYetNotRunning);
+
+            if(!isAppYetNotRunning)
+            {
+                Global.Error("本程序只能打开单个实例！");
+                Environment.Exit(1);
+            }
 
             try
             {
