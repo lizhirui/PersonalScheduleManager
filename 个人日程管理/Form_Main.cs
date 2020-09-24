@@ -355,9 +355,10 @@ namespace 个人日程管理
             memo.description = textBox_Memo_Description.Text;
             memo.createdTime = DateTime.Now;
             
-            if(memo.title == "" || memo.description == "")
+            if(memo.title == "")
             {
-                Global.Error("标题或内容为空！");
+                Global.Error("标题为空！");
+                return;
             }
 
             memoInfoService.Add(memo);
@@ -693,9 +694,10 @@ namespace 个人日程管理
             task.progressUnit = textBox_Task_Unit.Text;
             task.createdTime = DateTime.Now;
 
-            if(task.title == "" || task.description == "")
+            if(task.title == "")
             {
-                Global.Error("标题或内容为空！");
+                Global.Error("标题为空！");
+                return;
             }
 
             taskInfoService.Add(task);
@@ -964,9 +966,15 @@ namespace 个人日程管理
             _event.taskId = checkBox_Event_LinkTask.Tag == null ? -1 : (int)checkBox_Event_LinkTask.Tag;
             _event.type = checkBox_Event_LinkTask.Checked ? Event.Type.Task : Event.Type.GenericEvent;
 
-            if(_event.title == "" || _event.description == "")
+            if(_event.title == "")
             {
-                Global.Error("标题或内容为空！");
+                Global.Error("标题为空！");
+                return;
+            }
+
+            if(!EventDateCheckScriptCompile())
+            {
+                return;
             }
 
             eventInfoService.Add(_event);
@@ -980,6 +988,11 @@ namespace 个人日程管理
             if(eventCurrentItem == null)
             {
                 Global.Error("无可更新项！");
+                return;
+            }
+
+            if(!EventDateCheckScriptCompile())
+            {
                 return;
             }
             
@@ -1497,7 +1510,11 @@ namespace 个人日程管理
             {
                 RemindThreadMsgInQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Stop});
                 var tick = Environment.TickCount;
-                while(RemindThreadMsgOutQueue.Count == 0 && (Environment.TickCount - tick) < 2000);
+
+                while(RemindThreadMsgOutQueue.Count == 0 && (Environment.TickCount - tick) < 2000)
+                {
+                    Thread.Sleep(100);
+                }
             }
 
             Environment.Exit(0);
