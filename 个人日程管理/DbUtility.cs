@@ -136,7 +136,6 @@ namespace LiZhiruiToolSet
             if(Connection != null)
             {
                 Connection.Close();
-                Connection = null;
             }
         }
 

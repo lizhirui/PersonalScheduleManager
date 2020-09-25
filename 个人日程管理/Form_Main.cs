@@ -48,6 +48,7 @@ namespace 个人日程管理
         private DateTime oldEndTime = DateTime.Now;
         public ChromiumWebBrowser scheduleTable = null;
         private Thread RemindThread = null;
+        private DbUtility db = DbUtility.GetInstance();
 
         private const int Task_Mode_Normal = 0;
         private const int Task_Mode_Insert = 1;
@@ -234,9 +235,28 @@ namespace 个人日程管理
             }
         }
 
+        private void OpenDatabase()
+        {
+            try
+            {
+                db.Open();
+            }
+            catch
+            {
+                Global.Error("数据库连接失败！");
+                Environment.Exit(-1);
+            }
+        }
+
+        private void CloseDatabase()
+        {
+            db.Close();
+        }
+
         public Form_Main()
         {
             InitializeComponent();
+            oldFixedTaskHeightDelta = panel_Task_Data.ClientRectangle.Height - textBox_Task_Description.Bottom;
             formulaEditor = new TextEditor();
             formulaEditor.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
             formulaEditor.VerticalAlignment = System.Windows.VerticalAlignment.Top;
@@ -290,7 +310,6 @@ namespace 个人日程管理
 
         private void Form_Main_Load(object sender,EventArgs e)
         {
-            oldFixedTaskHeightDelta = panel_Task_Data.ClientRectangle.Height - textBox_Task_Description.Bottom;
             Form_Main_SizeChanged(sender,e);
             UpdateMemoList();
             UpdateTaskList();
@@ -325,12 +344,15 @@ namespace 个人日程管理
 
         private void UpdateMemoList()
         {
+            OpenDatabase();
             listBox_Memo_List.Items.Clear();
 
             foreach(var titem in memoInfoService.GetAllList())
             {
                 listBox_Memo_List.Items.Add(titem);
             }
+
+            CloseDatabase();
         }
 
         private void SelectMemo(Memo memo)
@@ -373,7 +395,9 @@ namespace 个人日程管理
                 return;
             }
 
+            OpenDatabase();
             memoInfoService.Add(memo);
+            CloseDatabase();
             memoModified = false;
             UpdateMemoList();
             SelectMemo(memo);
@@ -417,7 +441,9 @@ namespace 个人日程管理
 
             memoCurrentItem.title = textBox_Memo_Title.Text;
             memoCurrentItem.description = textBox_Memo_Description.Text;
+            OpenDatabase();
             memoInfoService.Modify(memoCurrentItem);
+            CloseDatabase();
             memoModified = false;
             UpdateMemoList();
             SelectMemo(memoCurrentItem);
@@ -439,7 +465,9 @@ namespace 个人日程管理
                                     memoCurrentItem = null;
                                 }
 
+                                OpenDatabase();
                                 memoInfoService.Delete((listBox_Memo_List.SelectedItem as Memo).id);
+                                CloseDatabase();
                                 UpdateMemoList();
                             }
                         }
@@ -481,7 +509,8 @@ namespace 个人日程管理
             rootnode.Text = "root";
             nodesMap.Add(-1,rootnode.Nodes);
             treeView_Task_Dir.Nodes.Add(rootnode);
-            
+            OpenDatabase();
+
             foreach(var item in taskInfoService.GetAllChildList(-1))
             {
                 var node = new TreeNode();
@@ -491,6 +520,8 @@ namespace 个人日程管理
                 nodesMap[item.id] = node.Nodes;
                 nodesMap[item.parentId].Add(node);
             }
+
+            CloseDatabase();
         }
 
         private void panel_Task_Data_SizeChanged(object sender,EventArgs e)
@@ -590,6 +621,7 @@ namespace 个人日程管理
         private void UpdateTaskData(int parentId)
         {
             listView_Task_Item.Items.Clear();
+            OpenDatabase();
 
             foreach(var titem in taskInfoService.GetAllDirectChildList(parentId))
             {
@@ -637,6 +669,8 @@ namespace 个人日程管理
 
                 item.SubItems.Add(titem.createdTime.ToString("yyyy/MM/dd HH:mm:ss"));
             }
+
+            CloseDatabase();
         }
 
         private void treeView_Task_Dir_AfterSelect(object sender,TreeViewEventArgs e)
@@ -730,7 +764,9 @@ namespace 个人日程管理
                 return;
             }
 
+            OpenDatabase();
             taskInfoService.Add(task);
+            CloseDatabase();
             taskModified = false;
 
             switch(comboBox_Task_Mode.SelectedIndex)
@@ -770,7 +806,9 @@ namespace 个人日程管理
             taskCurrentItem.finishedProgress = textBox_Task_FinishedProgress.Text.Trim().Length > 0 ? int.Parse(textBox_Task_FinishedProgress.Text.Trim()) : 0;
             taskCurrentItem.totalProgress = textBox_Task_TotalProgress.Text.Trim().Length > 0 ? int.Parse(textBox_Task_TotalProgress.Text.Trim()) : 0;
             taskCurrentItem.progressUnit = textBox_Task_Unit.Text;
+            OpenDatabase();
             taskInfoService.Modify(taskCurrentItem);
+            CloseDatabase();
             taskModified = false;
             UpdateTaskList();
             SelectTask(taskCurrentItem);
@@ -858,7 +896,9 @@ namespace 个人日程管理
 
                                 var newtask = new Model.Task();
                                 newtask.id = (treeView_Task_Dir.SelectedNode.Tag as Model.Task).parentId;
+                                OpenDatabase();
                                 taskInfoService.Delete((treeView_Task_Dir.SelectedNode.Tag as Model.Task).id);
+                                CloseDatabase();
                                 UpdateTaskList();
                                 SelectTask(newtask,true);
                             }
@@ -949,6 +989,7 @@ namespace 个人日程管理
 
         private void UpdateEventList(DateTime startTime,DateTime endTime)
         {
+            OpenDatabase();
             oldStartTime = startTime;
             oldEndTime = endTime;
             listBox_Event_List.Items.Clear();
@@ -957,6 +998,8 @@ namespace 个人日程管理
             {
                 listBox_Event_List.Items.Add(titem);
             }
+
+            CloseDatabase();
         }
 
         private void UpdateEventList()
@@ -1028,7 +1071,9 @@ namespace 个人日程管理
                 return;
             }
 
+            OpenDatabase();
             eventInfoService.Add(_event);
+            CloseDatabase();
             eventModified = false;
             UpdateEventList();
             SelectEvent(_event);
@@ -1055,7 +1100,9 @@ namespace 个人日程管理
             eventCurrentItem.remindFormula = formulaEditor.Text;
             eventCurrentItem.taskId = checkBox_Event_LinkTask.Tag == null ? -1 : (int)checkBox_Event_LinkTask.Tag;
             eventCurrentItem.type = checkBox_Event_LinkTask.Checked ? Event.Type.Task : Event.Type.GenericEvent;
+            OpenDatabase();
             eventInfoService.Modify(eventCurrentItem);
+            CloseDatabase();
             eventModified = false;
             UpdateEventList();
             SelectEvent(eventCurrentItem);
@@ -1102,7 +1149,9 @@ namespace 个人日程管理
                                     eventCurrentItem = null;
                                 }
 
+                                OpenDatabase();
                                 eventInfoService.Delete((listBox_Event_List.SelectedItem as Event).id);
+                                CloseDatabase();
                                 UpdateEventList();
                             }
                         }
@@ -1313,7 +1362,9 @@ namespace 个人日程管理
 
         private void button_Schedule_Search_Click(object sender,EventArgs e)
         {
+            OpenDatabase();
             var eventList = eventInfoService.GetAllList(DateTime.MinValue,DateTime.MaxValue);
+            CloseDatabase();
             var rowLabel = new LinkedList<TimeRange>();
 
             var curTime = DateTime.Now;
@@ -1579,7 +1630,9 @@ namespace 个人日程管理
             }
             else
             {
+                OpenDatabase();
                 var item = eventInfoService.GetInfo(id);
+                CloseDatabase();
             
                 if(item == null)
                 {
@@ -1634,103 +1687,121 @@ namespace 个人日程管理
             try
             {
                 db.Init(Global.connectionString,DbProviderType.MySql);
-                db.Open();
             }
             catch
             {
-                Invoke(new Action(() => {Global.Error("线程数据库连接失败！");Environment.Exit(-1);}));
+                Invoke(new Action(() => {Global.Error("线程数据库初始化失败！");Environment.Exit(-1);}));
                 return;
             }
 
-            var eventInfoService = new EventInfoService(db);
-            var lastTime = DateTime.Now.AddMinutes(-1);
-
-            while(!stopped)
+            try
             {
-                if(RemindThreadMsgInQueue.Count > 0)
+                var eventInfoService = new EventInfoService(db);
+                var lastTime = DateTime.Now.AddMinutes(-1);
+
+                while(!stopped)
                 {
-                    ThreadControlMsg msg;
-
-                    if(RemindThreadMsgInQueue.TryDequeue(out msg))
+                    if(RemindThreadMsgInQueue.Count > 0)
                     {
-                        switch(msg.cmd)
+                        ThreadControlMsg msg;
+
+                        if(RemindThreadMsgInQueue.TryDequeue(out msg))
                         {
-                            case ThreadControlCmd.Start:
-                                running = true;
-                                RemindThreadMsgOutQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Started});
-                                break;
+                            switch(msg.cmd)
+                            {
+                                case ThreadControlCmd.Start:
+                                    running = true;
+                                    RemindThreadMsgOutQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Started});
+                                    break;
 
-                            case ThreadControlCmd.Pause:
-                                running = false;
-                                RemindThreadMsgOutQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Paused});
-                                break;
+                                case ThreadControlCmd.Pause:
+                                    running = false;
+                                    RemindThreadMsgOutQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Paused});
+                                    break;
 
-                            case ThreadControlCmd.Stop:
-                                running = false;
-                                stopped = true;
-                                RemindThreadMsgOutQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Stopped});
-                                break;
+                                case ThreadControlCmd.Stop:
+                                    running = false;
+                                    stopped = true;
+                                    RemindThreadMsgOutQueue.Enqueue(new ThreadControlMsg{cmd = ThreadControlCmd.Stopped});
+                                    break;
+                            }
                         }
                     }
-                }
 
-                var curTime = DateTime.Now;
+                    var curTime = DateTime.Now;
 
-                if(running && (curTime.Year != lastTime.Year || curTime.Month != lastTime.Month || curTime.Day != lastTime.Day || curTime.Hour != lastTime.Hour || curTime.Minute != lastTime.Minute))
-                {
-                    lastTime = curTime;
-                    var eventList = eventInfoService.GetAllList(DateTime.MinValue,DateTime.MaxValue);                    
-                    var startDate = DateTime.Now;
-                    startDate = new DateTime(startDate.Year,startDate.Month,startDate.Day,0,0,0);
-                    var endDate = DateTime.Now;
-                    endDate = new DateTime(endDate.Year,endDate.Month,endDate.Day,23,59,59);
-                    var ts = endDate - startDate;
-                    var diffDays = (int)Math.Ceiling(ts.TotalDays);
-                    var curDate = startDate;
-                    Event foundEvent = null;
-
-                    try
+                    if(running && (curTime.Year != lastTime.Year || curTime.Month != lastTime.Month || curTime.Day != lastTime.Day || curTime.Hour != lastTime.Hour || curTime.Minute != lastTime.Minute))
                     {
-                        for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
-                        {
-                            foreach(var item in eventList)
-                            {
-                                if(item.enabled)
-                                {
-                                    try
-                                    {
-                                        var fm = new FormulaManager(item.remindFormula);
+                        lastTime = curTime;
 
-                                        if(fm.GetStartDate() <= curDate && curDate <= fm.GetEndDate() && fm.CheckDate(curDate))
+                        try
+                        {
+                            db.Open();
+                        }
+                        catch
+                        {
+                            Invoke(new Action(() => {Global.Error("线程数据库打开失败！");Environment.Exit(-1);}));
+                            return;
+                        }
+
+                        var eventList = eventInfoService.GetAllList(DateTime.MinValue,DateTime.MaxValue);    
+                        db.Close();
+                        var startDate = DateTime.Now;
+                        startDate = new DateTime(startDate.Year,startDate.Month,startDate.Day,0,0,0);
+                        var endDate = DateTime.Now;
+                        endDate = new DateTime(endDate.Year,endDate.Month,endDate.Day,23,59,59);
+                        var ts = endDate - startDate;
+                        var diffDays = (int)Math.Ceiling(ts.TotalDays);
+                        var curDate = startDate;
+                        Event foundEvent = null;
+
+                        try
+                        {
+                            for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
+                            {
+                                foreach(var item in eventList)
+                                {
+                                    if(item.enabled)
+                                    {
+                                        try
                                         {
-                                            if((Time)item.startTime == (Time)curTime)
+                                            var fm = new FormulaManager(item.remindFormula);
+
+                                            if(fm.GetStartDate() <= curDate && curDate <= fm.GetEndDate() && fm.CheckDate(curDate))
                                             {
-                                                foundEvent = item;
-                                                goto next;
+                                                if((Time)item.startTime == (Time)curTime)
+                                                {
+                                                    foundEvent = item;
+                                                    goto next;
+                                                }
                                             }
                                         }
-                                    }
-                                    catch
-                                    {
+                                        catch
+                                        {
                                     
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    catch
-                    {
-                
-                    }
-
-                    next:
-                        if(foundEvent != null)
+                        catch
                         {
-                            Invoke(new Action(() => {var sp = new SoundPlayer();sp.SoundLocation = @"Resource\remind.wav";sp.PlayLooping();viewEvent(foundEvent.id);sp.Stop();}));
+                
                         }
-                }
 
-                Thread.Sleep(100);
+                        next:
+                            if(foundEvent != null)
+                            {
+                                Invoke(new Action(() => {var sp = new SoundPlayer();sp.SoundLocation = @"Resource\remind.wav";sp.PlayLooping();viewEvent(foundEvent.id);sp.Stop();}));
+                            }
+                    }
+
+                    Thread.Sleep(100);
+                }
+            }
+            catch(Exception e)
+            {
+                Invoke(new Action(() => {Global.Error("线程出现严重错误，程序结束：" + e.Message + "\r\n" + e.StackTrace);Environment.Exit(-1);}));
             }
         }
 
