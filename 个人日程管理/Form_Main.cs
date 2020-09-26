@@ -1258,10 +1258,13 @@ namespace 个人日程管理
 
         private void tabPage_Schedule_SizeChanged(object sender,EventArgs e)
         {
-            scheduleTable.Left = 6;
-            scheduleTable.Top = 40;
-            scheduleTable.Width = tabPage_Schedule.ClientRectangle.Width - scheduleTable.Left;
-            scheduleTable.Height = tabPage_Schedule.ClientRectangle.Height - scheduleTable.Top;
+            if(scheduleTable != null)
+            {
+                scheduleTable.Left = 6;
+                scheduleTable.Top = 40;
+                scheduleTable.Width = tabPage_Schedule.ClientRectangle.Width - scheduleTable.Left;
+                scheduleTable.Height = tabPage_Schedule.ClientRectangle.Height - scheduleTable.Top;
+            }
         }
 
         struct Time
