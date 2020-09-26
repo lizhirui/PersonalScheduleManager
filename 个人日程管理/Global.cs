@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,6 +13,9 @@ namespace 个人日程管理
     class Global
     {
         public static readonly string connectionString = "Server=localhost;Database=schedulemanager;Uid=schedulemanager;Pwd=schedulemanagerlzr";
+
+        [DllImport("user32",EntryPoint = "SetWindowPos")]
+        public static extern bool SetWindowPos(IntPtr hWnd,IntPtr hWndlnsertAfter,int X,int Y,int cx,int cy,int flags); 
 
         static Global()
         {

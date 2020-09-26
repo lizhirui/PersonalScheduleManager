@@ -50,6 +50,8 @@ namespace 个人日程管理
         private Thread RemindThread = null;
         private DbUtility db = DbUtility.GetInstance();
 
+        private bool closeRequestFromNotifyMenu = false;
+
         private const int Task_Mode_Normal = 0;
         private const int Task_Mode_Insert = 1;
 
@@ -255,9 +257,25 @@ namespace 个人日程管理
 
         public Form_Main()
         {
+            var settings = new CefSettings();
+
+            settings.RegisterScheme(new CefCustomScheme
+            {
+                SchemeName = CefSharpSchemeHandlerFactory.SchemeName,
+                SchemeHandlerFactory = new CefSharpSchemeHandlerFactory(),
+                IsSecure = false,
+                IsLocal = false,
+                IsStandard = true
+            });
+
+            Cef.Initialize(settings);
+            scheduleTable = new ChromiumWebBrowser("about:blank"); 
+            formulaEditor = new TextEditor();
+            RemindThreadMsgInQueue = new ConcurrentQueue<ThreadControlMsg>();
+            RemindThreadMsgOutQueue = new ConcurrentQueue<ThreadControlMsg>();
+            RemindThread = new Thread(new ThreadStart(RemindThreadEntry));
             InitializeComponent();
             oldFixedTaskHeightDelta = panel_Task_Data.ClientRectangle.Height - textBox_Task_Description.Bottom;
-            formulaEditor = new TextEditor();
             formulaEditor.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
             formulaEditor.VerticalAlignment = System.Windows.VerticalAlignment.Top;
             formulaEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("JavaScript");
@@ -274,38 +292,20 @@ namespace 个人日程管理
             formulaEditor.TextChanged += FormulaEditor_TextChanged;
             formulaEditor.KeyDown += FormulaEditor_KeyDown;
             elementHost_Event_RemindFormula.Child = formulaEditor;
-            var settings = new CefSettings();
-
-            settings.RegisterScheme(new CefCustomScheme
-            {
-                SchemeName = CefSharpSchemeHandlerFactory.SchemeName,
-                SchemeHandlerFactory = new CefSharpSchemeHandlerFactory(),
-                IsSecure = false,
-                IsLocal = false,
-                IsStandard = true
-            });
-
-            Cef.Initialize(settings);
-            scheduleTable = new ChromiumWebBrowser("about:blank");
             scheduleTable.Dock = DockStyle.None;
             CefSharpSettings.LegacyJavascriptBindingEnabled = true;
             CefSharpSettings.WcfEnabled = true;
             scheduleTable.JavascriptObjectRepository.Register("global",new JSGlobal(this),isAsync : false,options : BindingOptions.DefaultBinder);
             tabPage_Schedule.Controls.Add(scheduleTable);
-            RemindThreadMsgInQueue = new ConcurrentQueue<ThreadControlMsg>();
-            RemindThreadMsgOutQueue = new ConcurrentQueue<ThreadControlMsg>();
-            RemindThread = new Thread(new ThreadStart(RemindThreadEntry));
             RemindThread.Start();
             checkBox_Schedule_Remind_CheckedChanged(checkBox_Schedule_Remind,new EventArgs());
             comboBox_Task_Mode.SelectedIndex = 0;
-            
             toolTip_Tip.SetToolTip(listBox_Memo_List,"按Delete键可删除对应的项");
             toolTip_Tip.SetToolTip(treeView_Task_Dir,"按Delete键可删除对应的项，按鼠标右键可以在当前项编辑界面与子任务详情列表之间切换");
             toolTip_Tip.SetToolTip(listBox_Event_List,"按Delete键可删除对应的项");
             var formulaEditorTooltip = new System.Windows.Controls.ToolTip();
             formulaEditorTooltip.Content = "按F9键可打开脚本助手\ncheckDate用于检查一个特定的日期是否属于该日程\ngetStartDate与getEndDate用于限定属于该日程的日期范围";
             formulaEditor.ToolTip = formulaEditorTooltip;
-            toolTip_Tip.SetToolTip(button_Schedule_Search,"若事件过多或日期范围过长，查询可能需要一些时间，请耐心等待");
         }
 
         private void Form_Main_Load(object sender,EventArgs e)
@@ -533,6 +533,9 @@ namespace 个人日程管理
             var deltaHeight = textBox_Task_Description.Height - oldDesHeight;
             label_Task_Progress.Top += deltaHeight;
             label_Task_Separate.Top += deltaHeight;
+            label_Task_FinishedProgress.Top += deltaHeight;
+            label_Task_TotalProgress.Top += deltaHeight;
+            label_Task_Unit.Top += deltaHeight;
             textBox_Task_FinishedProgress.Top += deltaHeight;
             textBox_Task_TotalProgress.Top += deltaHeight;
             textBox_Task_Unit.Top += deltaHeight;
@@ -631,13 +634,13 @@ namespace 个人日程管理
                 item.Text = titem.title;
                 listView_Task_Item.Items.Add(item);
 
-                if(!titem._hasChild)
+                if(!titem._hasChild || titem._hasSameUnit)
                 {
                     item.SubItems.Add(titem.finishedProgress + titem.progressUnit + "/" + titem.totalProgress + titem.progressUnit);
                 }
                 else
                 {
-                    item.SubItems.Add("因有子任务，本项无意义");
+                    item.SubItems.Add("因单位不统一，本项无意义");
                 }
 
                 item.SubItems.Add(Math.Round(titem.finishedProgress * 100.0d / titem.totalProgress,2) + "%");
@@ -651,7 +654,7 @@ namespace 个人日程管理
                 }
                 else
                 {
-                    if(titem._hasChild)
+                    if(titem._hasChild && !titem._hasSameUnit)
                     {
                         item.SubItems.Add(GetSpeedString(titem.finishedProgress * 100.0d / titem.totalProgress,"%",DateTime.Now - titem._firstStartTime));
                         item.SubItems.Add(GetSpeedString(100.0d - titem.finishedProgress * 100.0d / titem.totalProgress,"%",titem._lastEndTime - DateTime.Now));
@@ -1360,11 +1363,85 @@ namespace 个人日程管理
             public bool Nil;
         }
 
-        private void button_Schedule_Search_Click(object sender,EventArgs e)
+        private void ConfigureSchedulePartProgress(int maxValue)
         {
-            OpenDatabase();
-            var eventList = eventInfoService.GetAllList(DateTime.MinValue,DateTime.MaxValue);
-            CloseDatabase();
+            if(progressBar_Schedule_Part.InvokeRequired)
+            {
+                progressBar_Schedule_Part.BeginInvoke(new Action(() => ConfigureSchedulePartProgress(maxValue)));
+            }
+            else
+            {
+                progressBar_Schedule_Part.Value = 0;
+                progressBar_Schedule_Part.Maximum = maxValue;
+                progressBar_Schedule_Part.Minimum = 0;
+            }
+        }
+
+        private void ConfigureScheduleTotalProgress(int maxValue)
+        {
+            if(progressBar_Schedule_Total.InvokeRequired)
+            {
+                progressBar_Schedule_Total.BeginInvoke(new Action(() => ConfigureScheduleTotalProgress(maxValue)));
+            }
+            else
+            {
+                progressBar_Schedule_Total.Value = 0;
+                progressBar_Schedule_Total.Maximum = maxValue;
+                progressBar_Schedule_Total.Minimum = 0;
+            }
+        }
+
+        private void SetSchedulePartProgress(int value)
+        {
+            if(progressBar_Schedule_Part.InvokeRequired)
+            {
+                progressBar_Schedule_Part.BeginInvoke(new Action(() => SetSchedulePartProgress(value)));
+            }
+            else
+            {
+                progressBar_Schedule_Part.Value = value;
+            }
+        }
+
+        private void AddSchedulePartProgress(int value)
+        {
+            if(progressBar_Schedule_Part.InvokeRequired)
+            {
+                progressBar_Schedule_Part.BeginInvoke(new Action(() => AddSchedulePartProgress(value)));
+            }
+            else
+            {
+                progressBar_Schedule_Part.Value += value;
+            }
+        }
+
+        private void SetScheduleTotalProgress(int value)
+        {
+            if(progressBar_Schedule_Total.InvokeRequired)
+            {
+                progressBar_Schedule_Total.BeginInvoke(new Action(() => SetScheduleTotalProgress(value)));
+            }
+            else
+            {
+                progressBar_Schedule_Total.Value = value;
+            }
+        }
+
+        private void AddScheduleTotalProgress(int value)
+        {
+            if(progressBar_Schedule_Total.InvokeRequired)
+            {
+                progressBar_Schedule_Total.BeginInvoke(new Action(() => AddScheduleTotalProgress(value)));
+            }
+            else
+            {
+                progressBar_Schedule_Total.Value += value;
+            }
+        }
+
+        private void GenerateScheduleThreadEntry(object obj)
+        {
+            var eventList = obj as Event[];
             var rowLabel = new LinkedList<TimeRange>();
 
             var curTime = DateTime.Now;
@@ -1380,32 +1457,43 @@ namespace 个人日程管理
             var curDate = startDate;
 
             rowLabel.AddLast(new TimeRange{start = new Time{hour = 0,minute = 0},end = new Time{hour = 24,minute = 0}});
+            ConfigureScheduleTotalProgress(9);
+            ConfigureSchedulePartProgress(eventList.Length);
 
-            for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
+            foreach(var item in eventList)
             {
-                if(curDate.Year == curTime.Year && curDate.Month == curTime.Month && curDate.Day == curTime.Day)
+                if(item.enabled)
                 {
-                    curTimeCol = i;
-                }
+                    var fm = new FormulaManager(item.remindFormula);
+                    curDate = startDate;
 
-                foreach(var item in eventList)
-                {
-                    if(item.enabled)
+                    for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
                     {
-                        var fm = new FormulaManager(item.remindFormula);
+                        if(curDate.Year == curTime.Year && curDate.Month == curTime.Month && curDate.Day == curTime.Day)
+                        {
+                            curTimeCol = i;
+                        }
 
                         if(fm.GetStartDate() <= curDate && curDate <= fm.GetEndDate() && fm.CheckDate(curDate))
                         {
                             AddNewPointToTimeRangeLinkedList(rowLabel,item.startTime);
-                            AddNewPointToTimeRangeLinkedList(rowLabel,item.endTime);
+
+                            if(item.startTime < item.endTime || ((item.endTime.Hour != 0 || item.endTime.Minute != 0) && (i + 1) < diffDays))
+                            {
+                                AddNewPointToTimeRangeLinkedList(rowLabel,item.endTime);
+                            }
                         }
                     }
                 }
+
+                AddSchedulePartProgress(1);
             }
 
+            AddScheduleTotalProgress(1);
             var rowLabelList = rowLabel.ToList();
             var startTimeMap = new Dictionary<Time,int>();
             var endTimeMap = new Dictionary<Time,int>();
+            ConfigureSchedulePartProgress(rowLabelList.Count);
 
             for(var i = 0;i < rowLabelList.Count;i++)
             {
@@ -1416,30 +1504,63 @@ namespace 个人日程管理
 
                 startTimeMap[rowLabelList[i].start] = i;
                 endTimeMap[rowLabelList[i].end] = i;
+                AddSchedulePartProgress(1);
             }
-
+            
             curDate = startDate;
 
             try
             {
+                AddScheduleTotalProgress(1);
+                ConfigureSchedulePartProgress(diffDays);
+
                 for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
                 {
                     scheduleList[i] = new List<EventScheduleUnit>();
+                    AddSchedulePartProgress(1);
+                }
 
-                    foreach(var item in eventList)
+                AddScheduleTotalProgress(1);
+                ConfigureSchedulePartProgress(eventList.Length);
+                
+                foreach(var item in eventList)
+                {
+                    if(item.enabled)
                     {
-                        if(item.enabled)
-                        {
-                            var fm = new FormulaManager(item.remindFormula);
+                        var fm = new FormulaManager(item.remindFormula);
+                        curDate = startDate;
 
+                        for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
+                        {
                             if(fm.GetStartDate() <= curDate && curDate <= fm.GetEndDate() && fm.CheckDate(curDate))
                             {
-                                scheduleList[i].Add(new EventScheduleUnit{parent = item,row = startTimeMap[item.startTime],rowNum = endTimeMap[item.endTime] - startTimeMap[item.startTime] + 1,Nil = false});
+                                if(item.startTime < item.endTime)
+                                {
+                                    scheduleList[i].Add(new EventScheduleUnit{parent = item,row = startTimeMap[item.startTime],rowNum = endTimeMap[item.endTime] - startTimeMap[item.startTime] + 1,Nil = false});
+                                }
+                                else
+                                {
+                                    scheduleList[i].Add(new EventScheduleUnit{parent = item,row = startTimeMap[item.startTime],rowNum = endTimeMap[new Time{hour = 24,minute = 0}] - startTimeMap[item.startTime] + 1,Nil = false});
+                                    
+                                    if((item.endTime.Hour != 0 || item.endTime.Minute != 0) && (i + 1) < diffDays)
+                                    {
+                                        scheduleList[i + 1].Add(new EventScheduleUnit{parent = item,row = startTimeMap[new Time{hour = 0,minute = 0}],rowNum = endTimeMap[item.endTime] - startTimeMap[new Time{hour = 0,minute = 0}] + 1,Nil = false});
+                                    }
+                                }
                             }
                         }
                     }
 
-                    scheduleList[i].OrderBy(x => x.row);
+                    AddSchedulePartProgress(1);
+                }
+
+                AddScheduleTotalProgress(1);
+                ConfigureSchedulePartProgress(diffDays);
+
+                for(var i = 0;i < diffDays;i++)
+                {
+                    scheduleList[i] = scheduleList[i].OrderBy(x => x.row).ToList();
+                    AddSchedulePartProgress(1);
                 }
             }
             catch
@@ -1447,6 +1568,8 @@ namespace 个人日程管理
                 
             }
 
+            AddScheduleTotalProgress(1);
+            ConfigureSchedulePartProgress(rowLabelList.Count);
             var tableData = new EventScheduleUnit[rowLabelList.Count,diffDays];
 
             for(var i = 0;i < rowLabelList.Count;i++)
@@ -1455,7 +1578,12 @@ namespace 个人日程管理
                 {
                     tableData[i,j] = new EventScheduleUnit{Nil = true};
                 }
+
+                AddSchedulePartProgress(1);
             }
+
+            AddScheduleTotalProgress(1);
+            ConfigureSchedulePartProgress(scheduleList.Length);
 
             for(var i = 0;i < scheduleList.Length;i++)
             {
@@ -1469,7 +1597,7 @@ namespace 个人日程管理
 
                             if(Global.Confirm("发生错误，是否终止生成日程表？"))
                             {
-                                return;
+                                goto exit;
                             }
                         }
                         else
@@ -1500,7 +1628,7 @@ namespace 个人日程管理
 
                             if(Global.Confirm("发生错误，是否终止生成日程表？"))
                             {
-                                return;
+                                goto exit;
                             }
                         }
                     }
@@ -1515,6 +1643,8 @@ namespace 个人日程管理
                         }
                     }
                 }
+
+                AddSchedulePartProgress(1);
             }
             
             var hc = new HTMLConstructor();
@@ -1540,17 +1670,23 @@ namespace 个人日程管理
                                 hc.AddHTMLEndLabel("th");
 
                                 curDate = startDate;
+                                AddScheduleTotalProgress(1);
+                                ConfigureSchedulePartProgress(diffDays);
 
                                 for(var i = 0;i < diffDays;i++,curDate = curDate.AddDays(1))
                                 {
                                     hc.AddHTMLStartLabel("th");
                                         hc.AppendLine(curDate.ToString("yyyy/MM/dd ddd"));
                                     hc.AddHTMLEndLabel("th");
+                                    AddSchedulePartProgress(1);
                                 }
 
                             hc.AddHTMLEndLabel("tr");
                         hc.AddHTMLEndLabel("thead");           
                         hc.AddHTMLStartLabel("tbody");
+
+                            AddScheduleTotalProgress(1);
+                            ConfigureSchedulePartProgress(rowLabelList.Count);
 
                             for(var i = 0;i < rowLabelList.Count;i++)
                             {
@@ -1593,15 +1729,29 @@ namespace 个人日程管理
                                     }
 
                                 hc.AddHTMLEndLabel("tr");
+                                AddSchedulePartProgress(1);
                             }
 
                         hc.AddHTMLEndLabel("tbody");
                     hc.AddHTMLEndLabel("table");
                 hc.AddHTMLEndLabel("body");
             hc.AddHTMLEndLabel("html");
+            AddScheduleTotalProgress(1);
             
             CefSharpSchemeHandler.scheduleTableHTML = hc.ToString();
-            scheduleTable.Load("local://local/scheduleTable.html");
+            scheduleTable.Invoke(new Action(() => scheduleTable.Load("local://local/scheduleTable.html")));
+
+            exit:
+                button_Schedule_Search.Invoke(new Action(() => {button_Schedule_Search.Enabled = true;}));
+        }
+
+        private void button_Schedule_Search_Click(object sender,EventArgs e)
+        {
+            OpenDatabase();
+            var eventList = eventInfoService.GetAllList(DateTime.MinValue,DateTime.MaxValue);
+            CloseDatabase();
+            button_Schedule_Search.Enabled = false;
+            new Thread(new ParameterizedThreadStart(GenerateScheduleThreadEntry)).Start(eventList);
         }
 
         private void Form_Main_FormClosed(object sender,FormClosedEventArgs e)
@@ -1624,9 +1774,14 @@ namespace 个人日程管理
 
         public void viewEvent(int id)
         {
+            viewEvent(id,false,false,null,null,false,null,null);
+        }
+
+        public void viewEvent(int id,bool topMost,bool buttonLeftEnabled,string buttonLeftText,EventHandler buttonLeftClicked,bool buttonRightEnabled,string buttonRightText,EventHandler buttonRightClicked)
+        {
             if(InvokeRequired)
             {
-                Invoke(new Action(() => viewEvent(id)));
+                Invoke(new Action(() => viewEvent(id,topMost,buttonLeftEnabled,buttonLeftText,buttonLeftClicked,buttonRightEnabled,buttonRightText,buttonRightClicked)));
             }
             else
             {
@@ -1648,12 +1803,13 @@ namespace 个人日程管理
                 stb.AppendLine($"事件发生时段：{item.startTime.ToString("HH:mm")} - {item.endTime.ToString("HH:mm")}");
                 stb.AppendLine($"事件创建时间：{item.createdTime}");
                 stb.AppendLine($"事件类型：{(item.type == Event.Type.GenericEvent ? "一般事件" : "从任务派生的事件")}");
+                Model.Task task = null;
             
                 if(item.type == Event.Type.Task)
                 {
                     stb.AppendLine($"任务ID：{item.taskId}");
                     var hasChild = false;
-                    var task = taskInfoService.GetInfo(item.taskId,out hasChild);
+                    task = taskInfoService.GetInfo(item.taskId,out hasChild);
 
                     if(task == null)
                     {
@@ -1674,7 +1830,44 @@ namespace 个人日程管理
                     }
                 }
 
-                new Form_Info(stb.ToString(),false,null,null,false,null,null).ShowDialog(this);
+                if(!buttonLeftEnabled && !buttonRightEnabled)
+                {
+                    buttonLeftEnabled = true;
+                    buttonLeftText = "编辑事件";
+
+                    buttonLeftClicked = (sender,e) => 
+                    {
+                        BeginInvoke(new Action(() => 
+                        {
+                            Show();
+                            button_Event_SearchAll_Click(button_Event_SearchAll,new EventArgs());
+                            SelectEvent(item);
+                            tabControl_Main.SelectedTab = tabPage_Event;
+                        }));
+
+                        ((sender as Button).Parent as Form_Info).Close();
+                    };
+
+                    if(task != null)
+                    {
+                        buttonRightEnabled = true;
+                        buttonRightText = "编辑任务";
+
+                        buttonRightClicked = (sender,e) =>
+                        {
+                            BeginInvoke(new Action(() => 
+                            {
+                                Show();
+                                SelectTask(task);
+                                tabControl_Main.SelectedTab = tabPage_Task;
+                            }));
+
+                            ((sender as Button).Parent as Form_Info).Close();
+                        };
+                    }
+                }
+
+                new Form_Info(stb.ToString(),topMost,buttonLeftEnabled,buttonLeftText,buttonLeftClicked,buttonRightEnabled,buttonRightText,buttonRightClicked).ShowDialog(this);
             }
         }
 
@@ -1792,7 +1985,19 @@ namespace 个人日程管理
                         next:
                             if(foundEvent != null)
                             {
-                                Invoke(new Action(() => {var sp = new SoundPlayer();sp.SoundLocation = @"Resource\remind.wav";sp.PlayLooping();viewEvent(foundEvent.id);sp.Stop();}));
+                                new Thread(new ThreadStart(() => 
+                                {
+                                    var sp = new SoundPlayer();
+                                    sp.SoundLocation = @"Resource\remind.wav";
+                                    sp.PlayLooping();
+
+                                    viewEvent(foundEvent.id,true,true,"停止响铃",(sender,e) => 
+                                    {
+                                        sp.Stop();
+                                    },false,null,null);
+
+                                    sp.Stop();
+                                })).Start();
                             }
                     }
 
@@ -1841,6 +2046,48 @@ namespace 个人日程管理
                     Environment.Exit(-1);
                 }
             }
+        }
+
+        private void timer_Schedule_AutoRefresh_Tick(object sender,EventArgs e)
+        {
+            if(checkBox_Schedule_AutoRefresh.Checked)
+            {
+                button_Schedule_Search_Click(button_Schedule_Search,new EventArgs());
+            }
+        }
+
+        private void notifyIcon_Main_MouseDoubleClick(object sender,MouseEventArgs e)
+        {
+            Show();
+        }
+
+        private void Form_Main_FormClosing(object sender,FormClosingEventArgs e)
+        {
+            if(!closeRequestFromNotifyMenu)
+            {
+                e.Cancel = true;
+                Hide();
+                notifyIcon_Main.ShowBalloonTip(2000);
+            }
+        }
+
+        private void notifyIcon_Main_MouseDown(object sender,MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Right)
+            {
+                contextMenuStrip_NotifyIcon.Show(MousePosition.X,MousePosition.Y);
+            }
+        }
+
+        private void ToolStripMenuItem_NotifyIcon_Show_Click(object sender,EventArgs e)
+        {
+            Show();
+        }
+
+        private void ToolStripMenuItem_NotifyIcon_Exit_Click(object sender,EventArgs e)
+        {
+            closeRequestFromNotifyMenu = true;
+            Close();
         }
     }
 }

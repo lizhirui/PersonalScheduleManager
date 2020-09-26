@@ -21,5 +21,6 @@ namespace 个人日程管理.Model
         public bool _hasLinkedEvent;
         public DateTime _firstStartTime;
         public DateTime _lastEndTime;
+        public bool _hasSameUnit;
     }
 }

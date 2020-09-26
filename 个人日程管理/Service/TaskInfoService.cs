@@ -105,6 +105,7 @@ namespace 个人日程管理.Service
             }
 
             FillTaskAdvancedFields(item);
+            item._hasSameUnit = true;
             var tlist = GetAllChildList(item.id);
 
             if(tlist.Length > 0)
@@ -116,8 +117,29 @@ namespace 个人日程管理.Service
 
                 foreach(var titem in tlist)
                 {
-                    item.finishedProgress += (int)(titem.finishedProgress * 10000.0d / titem.totalProgress);
-                    item.totalProgress += 10000;
+                    if(!titem._hasSameUnit || titem.progressUnit != item.progressUnit)
+                    {
+                        item._hasSameUnit = false;
+                    }
+                }
+
+                foreach(var titem in tlist)
+                {
+                    if(!titem._hasSameUnit || titem.progressUnit != item.progressUnit)
+                    {
+                        item._hasSameUnit = false;
+                    }
+
+                    if(item._hasSameUnit)
+                    {
+                        item.finishedProgress += titem.finishedProgress;
+                        item.totalProgress += titem.totalProgress;
+                    }
+                    else
+                    {
+                        item.finishedProgress += (int)(titem.finishedProgress * 10000.0d / titem.totalProgress);
+                        item.totalProgress += 10000;
+                    }
 
                     if(titem._hasLinkedEvent)
                     {
@@ -151,6 +173,7 @@ namespace 个人日程管理.Service
             {
                 FillTaskAdvancedFields(item);
                 item._hasChild = false;
+                item._hasSameUnit = true;
                 var tlist = GetAllChildList(item.id);
 
                 if(tlist.Length > 0)
@@ -162,9 +185,26 @@ namespace 个人日程管理.Service
 
                     foreach(var titem in tlist)
                     {
+                        if(!titem._hasSameUnit || titem.progressUnit != item.progressUnit)
+                        {
+                            item._hasSameUnit = false;
+                        }
+                    }
+
+                    foreach(var titem in tlist)
+                    {
                         FillTaskAdvancedFields(titem);
-                        item.finishedProgress += (int)(titem.finishedProgress * 10000.0d / titem.totalProgress);
-                        item.totalProgress += 10000;
+
+                        if(item._hasSameUnit)
+                        {
+                            item.finishedProgress += titem.finishedProgress;
+                            item.totalProgress += titem.totalProgress;
+                        }
+                        else
+                        {
+                            item.finishedProgress += (int)(titem.finishedProgress * 10000.0d / titem.totalProgress);
+                            item.totalProgress += 10000;
+                        }
 
                         if(titem._hasLinkedEvent)
                         {

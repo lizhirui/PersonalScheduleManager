@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form_Info));
             this.textBox_Info = new System.Windows.Forms.TextBox();
             this.button_Left = new System.Windows.Forms.Button();
             this.button_Right = new System.Windows.Forms.Button();
@@ -70,6 +71,7 @@
             this.Controls.Add(this.button_Left);
             this.Controls.Add(this.textBox_Info);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form_Info";

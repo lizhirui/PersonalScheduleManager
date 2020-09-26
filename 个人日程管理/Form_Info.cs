@@ -12,9 +12,11 @@ namespace 个人日程管理
 {
     public partial class Form_Info : Form
     {
-        public Form_Info(string text,bool buttonLeftEnabled,string buttonLeftText,EventHandler buttonLeftClicked,bool buttonRightEnabled,string buttonRightText,EventHandler buttonRightClicked)
+        public Form_Info(string text,bool topMost,bool buttonLeftEnabled,string buttonLeftText,EventHandler buttonLeftClicked,bool buttonRightEnabled,string buttonRightText,EventHandler buttonRightClicked)
         {
             InitializeComponent();
+            TopMost = topMost;
+            Global.SetWindowPos(Handle,new IntPtr(-1),Left,Top,Width,Height,0);
             textBox_Info.Text = text;
             textBox_Info.SelectionStart = 0;
             textBox_Info.SelectionLength = 0;

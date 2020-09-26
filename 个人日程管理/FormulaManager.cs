@@ -17,17 +17,18 @@ namespace 个人日程管理
                 return _code;
             }
 
-            set
+            /*set
             {
                 if(value != null)
                 {
                     _code = value;
                 }
-            }
+            }*/
         }
 
         public string _code;
         public static readonly IPrecompiledScript startCode;
+        private IJsEngine engine;
 
         static FormulaManager()
         {
@@ -51,14 +52,36 @@ namespace 个人日程管理
             }
         }
 
-        public FormulaManager()
-        {
-        
-        }
-
         public FormulaManager(string code)
         {
-            this.code = code;
+            engine = JsEngineSwitcher.Current.CreateDefaultEngine();
+            _code = code;
+
+            try
+            {
+                engine.Execute(startCode);
+                engine.Execute(code);
+            }
+            catch(JsCompilationException e)
+            {
+                Global.Error("行" + e.LineNumber + "列" + e.ColumnNumber + "编译错误：" + e.Description);
+                throw e;
+            }
+            catch(JsRuntimeException e)
+            {
+                Global.Error("行" + e.LineNumber + "列" + e.ColumnNumber + "运行时错误：" + e.Description);
+                throw e;
+            }
+            catch(Exception e)
+            {
+                Global.Error(e.Message);
+                throw e;
+            }
+        }
+
+        ~FormulaManager()
+        {
+            engine.Dispose();
         }
 
         private DateTime ConvertJSObjectToDate(string date)
@@ -82,13 +105,7 @@ namespace 个人日程管理
         {
             try
             {
-                using(var engine = JsEngineSwitcher.Current.CreateDefaultEngine())
-                {
-                    
-                    engine.Execute(startCode);
-                    engine.Execute(code);
-                    return engine.CallFunction<T>(functionName,args);
-                }
+                return engine.CallFunction<T>(functionName,args);
             }
             catch(JsCompilationException e)
             {

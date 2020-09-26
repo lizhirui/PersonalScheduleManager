@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form_ScriptHelper));
             this.radioButton_Once = new System.Windows.Forms.RadioButton();
             this.radioButton_MultiTime = new System.Windows.Forms.RadioButton();
             this.dateTimePicker_StartDate = new System.Windows.Forms.DateTimePicker();
@@ -113,6 +114,7 @@
             this.Controls.Add(this.radioButton_MultiTime);
             this.Controls.Add(this.radioButton_Once);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form_ScriptHelper";

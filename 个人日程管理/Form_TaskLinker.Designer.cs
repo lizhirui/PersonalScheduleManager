@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form_TaskLinker));
             this.treeView_Task_Dir = new System.Windows.Forms.TreeView();
             this.button_Link = new System.Windows.Forms.Button();
             this.button_Unlink = new System.Windows.Forms.Button();
@@ -72,6 +73,7 @@
             this.Controls.Add(this.button_Link);
             this.Controls.Add(this.treeView_Task_Dir);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form_TaskLinker";
