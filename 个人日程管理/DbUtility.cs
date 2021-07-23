@@ -223,6 +223,7 @@ namespace LiZhiruiToolSet
             }
         }
 
+
         public object ExecuteScalar(string sql,IList<DbParameter> parameters)
         {
             return ExecuteScalar(sql,parameters,CommandType.Text);

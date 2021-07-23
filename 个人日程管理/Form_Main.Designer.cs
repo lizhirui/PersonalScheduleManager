@@ -39,6 +39,10 @@
             this.listBox_Memo_List = new System.Windows.Forms.ListBox();
             this.tabPage_Task = new System.Windows.Forms.TabPage();
             this.panel_Task_Data = new System.Windows.Forms.Panel();
+            this.label_Task_Unit = new System.Windows.Forms.Label();
+            this.label_Task_TotalProgress = new System.Windows.Forms.Label();
+            this.label_Task_FinishedProgress = new System.Windows.Forms.Label();
+            this.comboBox_Task_Mode = new System.Windows.Forms.ComboBox();
             this.button_Task_Update = new System.Windows.Forms.Button();
             this.button_Task_Add = new System.Windows.Forms.Button();
             this.textBox_Task_ProgressPercent = new System.Windows.Forms.TextBox();
@@ -58,6 +62,7 @@
             this.columnHeader_Task_FinishSpeed = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_Task_RemainedTaskFinishMinimumSpeed = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_LastTaskFinishTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader_FirstTaskStartTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader_Task_List_CreatedTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.treeView_Task_Dir = new System.Windows.Forms.TreeView();
             this.tabPage_Record = new System.Windows.Forms.TabPage();
@@ -84,20 +89,15 @@
             this.textBox_Event_Title = new System.Windows.Forms.TextBox();
             this.listBox_Event_List = new System.Windows.Forms.ListBox();
             this.tabPage_Schedule = new System.Windows.Forms.TabPage();
+            this.checkBox_Schedule_AutoRefresh = new System.Windows.Forms.CheckBox();
+            this.progressBar_Schedule_Total = new System.Windows.Forms.ProgressBar();
+            this.progressBar_Schedule_Part = new System.Windows.Forms.ProgressBar();
             this.checkBox_Schedule_Remind = new System.Windows.Forms.CheckBox();
             this.button_Schedule_Search = new System.Windows.Forms.Button();
             this.dateTimePicker_Schedule_EndDate = new System.Windows.Forms.DateTimePicker();
             this.dateTimePicker_Schedule_StartDate = new System.Windows.Forms.DateTimePicker();
-            this.columnHeader_FirstTaskStartTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.comboBox_Task_Mode = new System.Windows.Forms.ComboBox();
             this.toolTip_Tip = new System.Windows.Forms.ToolTip(this.components);
-            this.progressBar_Schedule_Part = new System.Windows.Forms.ProgressBar();
-            this.progressBar_Schedule_Total = new System.Windows.Forms.ProgressBar();
-            this.checkBox_Schedule_AutoRefresh = new System.Windows.Forms.CheckBox();
             this.timer_Schedule_AutoRefresh = new System.Windows.Forms.Timer(this.components);
-            this.label_Task_FinishedProgress = new System.Windows.Forms.Label();
-            this.label_Task_TotalProgress = new System.Windows.Forms.Label();
-            this.label_Task_Unit = new System.Windows.Forms.Label();
             this.notifyIcon_Main = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip_NotifyIcon = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ToolStripMenuItem_NotifyIcon_Show = new System.Windows.Forms.ToolStripMenuItem();
@@ -229,6 +229,44 @@
             this.panel_Task_Data.TabIndex = 2;
             this.panel_Task_Data.SizeChanged += new System.EventHandler(this.panel_Task_Data_SizeChanged);
             this.panel_Task_Data.VisibleChanged += new System.EventHandler(this.panel_Task_Data_VisibleChanged);
+            // 
+            // label_Task_Unit
+            // 
+            this.label_Task_Unit.AutoSize = true;
+            this.label_Task_Unit.Location = new System.Drawing.Point(306, 331);
+            this.label_Task_Unit.Name = "label_Task_Unit";
+            this.label_Task_Unit.Size = new System.Drawing.Size(53, 12);
+            this.label_Task_Unit.TabIndex = 15;
+            this.label_Task_Unit.Text = "进度单位";
+            // 
+            // label_Task_TotalProgress
+            // 
+            this.label_Task_TotalProgress.AutoSize = true;
+            this.label_Task_TotalProgress.Location = new System.Drawing.Point(201, 331);
+            this.label_Task_TotalProgress.Name = "label_Task_TotalProgress";
+            this.label_Task_TotalProgress.Size = new System.Drawing.Size(41, 12);
+            this.label_Task_TotalProgress.TabIndex = 14;
+            this.label_Task_TotalProgress.Text = "总进度";
+            // 
+            // label_Task_FinishedProgress
+            // 
+            this.label_Task_FinishedProgress.AutoSize = true;
+            this.label_Task_FinishedProgress.Location = new System.Drawing.Point(62, 331);
+            this.label_Task_FinishedProgress.Name = "label_Task_FinishedProgress";
+            this.label_Task_FinishedProgress.Size = new System.Drawing.Size(65, 12);
+            this.label_Task_FinishedProgress.TabIndex = 13;
+            this.label_Task_FinishedProgress.Text = "已完成进度";
+            // 
+            // comboBox_Task_Mode
+            // 
+            this.comboBox_Task_Mode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_Task_Mode.Items.AddRange(new object[] {
+            "正常模式",
+            "插入模式"});
+            this.comboBox_Task_Mode.Location = new System.Drawing.Point(382, 361);
+            this.comboBox_Task_Mode.Name = "comboBox_Task_Mode";
+            this.comboBox_Task_Mode.Size = new System.Drawing.Size(121, 20);
+            this.comboBox_Task_Mode.TabIndex = 12;
             // 
             // button_Task_Update
             // 
@@ -385,6 +423,11 @@
             // 
             this.columnHeader_LastTaskFinishTime.Text = "最晚任务完成时间";
             this.columnHeader_LastTaskFinishTime.Width = 150;
+            // 
+            // columnHeader_FirstTaskStartTime
+            // 
+            this.columnHeader_FirstTaskStartTime.Text = "最早任务开始时间";
+            this.columnHeader_FirstTaskStartTime.Width = 150;
             // 
             // columnHeader_Task_List_CreatedTime
             // 
@@ -657,6 +700,30 @@
             this.tabPage_Schedule.UseVisualStyleBackColor = true;
             this.tabPage_Schedule.SizeChanged += new System.EventHandler(this.tabPage_Schedule_SizeChanged);
             // 
+            // checkBox_Schedule_AutoRefresh
+            // 
+            this.checkBox_Schedule_AutoRefresh.AutoSize = true;
+            this.checkBox_Schedule_AutoRefresh.Location = new System.Drawing.Point(966, 16);
+            this.checkBox_Schedule_AutoRefresh.Name = "checkBox_Schedule_AutoRefresh";
+            this.checkBox_Schedule_AutoRefresh.Size = new System.Drawing.Size(72, 16);
+            this.checkBox_Schedule_AutoRefresh.TabIndex = 19;
+            this.checkBox_Schedule_AutoRefresh.Text = "自动刷新";
+            this.checkBox_Schedule_AutoRefresh.UseVisualStyleBackColor = true;
+            // 
+            // progressBar_Schedule_Total
+            // 
+            this.progressBar_Schedule_Total.Location = new System.Drawing.Point(801, 12);
+            this.progressBar_Schedule_Total.Name = "progressBar_Schedule_Total";
+            this.progressBar_Schedule_Total.Size = new System.Drawing.Size(158, 23);
+            this.progressBar_Schedule_Total.TabIndex = 18;
+            // 
+            // progressBar_Schedule_Part
+            // 
+            this.progressBar_Schedule_Part.Location = new System.Drawing.Point(625, 12);
+            this.progressBar_Schedule_Part.Name = "progressBar_Schedule_Part";
+            this.progressBar_Schedule_Part.Size = new System.Drawing.Size(158, 23);
+            this.progressBar_Schedule_Part.TabIndex = 17;
+            // 
             // checkBox_Schedule_Remind
             // 
             this.checkBox_Schedule_Remind.AutoSize = true;
@@ -694,83 +761,16 @@
             this.dateTimePicker_Schedule_StartDate.Size = new System.Drawing.Size(200, 21);
             this.dateTimePicker_Schedule_StartDate.TabIndex = 13;
             // 
-            // columnHeader_FirstTaskStartTime
-            // 
-            this.columnHeader_FirstTaskStartTime.Text = "最早任务开始时间";
-            this.columnHeader_FirstTaskStartTime.Width = 150;
-            // 
-            // comboBox_Task_Mode
-            // 
-            this.comboBox_Task_Mode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox_Task_Mode.Items.AddRange(new object[] {
-            "正常模式",
-            "插入模式"});
-            this.comboBox_Task_Mode.Location = new System.Drawing.Point(382, 361);
-            this.comboBox_Task_Mode.Name = "comboBox_Task_Mode";
-            this.comboBox_Task_Mode.Size = new System.Drawing.Size(121, 20);
-            this.comboBox_Task_Mode.TabIndex = 12;
-            // 
             // toolTip_Tip
             // 
             this.toolTip_Tip.IsBalloon = true;
             this.toolTip_Tip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            // 
-            // progressBar_Schedule_Part
-            // 
-            this.progressBar_Schedule_Part.Location = new System.Drawing.Point(625, 12);
-            this.progressBar_Schedule_Part.Name = "progressBar_Schedule_Part";
-            this.progressBar_Schedule_Part.Size = new System.Drawing.Size(158, 23);
-            this.progressBar_Schedule_Part.TabIndex = 17;
-            // 
-            // progressBar_Schedule_Total
-            // 
-            this.progressBar_Schedule_Total.Location = new System.Drawing.Point(801, 12);
-            this.progressBar_Schedule_Total.Name = "progressBar_Schedule_Total";
-            this.progressBar_Schedule_Total.Size = new System.Drawing.Size(158, 23);
-            this.progressBar_Schedule_Total.TabIndex = 18;
-            // 
-            // checkBox_Schedule_AutoRefresh
-            // 
-            this.checkBox_Schedule_AutoRefresh.AutoSize = true;
-            this.checkBox_Schedule_AutoRefresh.Location = new System.Drawing.Point(966, 16);
-            this.checkBox_Schedule_AutoRefresh.Name = "checkBox_Schedule_AutoRefresh";
-            this.checkBox_Schedule_AutoRefresh.Size = new System.Drawing.Size(72, 16);
-            this.checkBox_Schedule_AutoRefresh.TabIndex = 19;
-            this.checkBox_Schedule_AutoRefresh.Text = "自动刷新";
-            this.checkBox_Schedule_AutoRefresh.UseVisualStyleBackColor = true;
             // 
             // timer_Schedule_AutoRefresh
             // 
             this.timer_Schedule_AutoRefresh.Enabled = true;
             this.timer_Schedule_AutoRefresh.Interval = 30000;
             this.timer_Schedule_AutoRefresh.Tick += new System.EventHandler(this.timer_Schedule_AutoRefresh_Tick);
-            // 
-            // label_Task_FinishedProgress
-            // 
-            this.label_Task_FinishedProgress.AutoSize = true;
-            this.label_Task_FinishedProgress.Location = new System.Drawing.Point(62, 331);
-            this.label_Task_FinishedProgress.Name = "label_Task_FinishedProgress";
-            this.label_Task_FinishedProgress.Size = new System.Drawing.Size(65, 12);
-            this.label_Task_FinishedProgress.TabIndex = 13;
-            this.label_Task_FinishedProgress.Text = "已完成进度";
-            // 
-            // label_Task_TotalProgress
-            // 
-            this.label_Task_TotalProgress.AutoSize = true;
-            this.label_Task_TotalProgress.Location = new System.Drawing.Point(201, 331);
-            this.label_Task_TotalProgress.Name = "label_Task_TotalProgress";
-            this.label_Task_TotalProgress.Size = new System.Drawing.Size(41, 12);
-            this.label_Task_TotalProgress.TabIndex = 14;
-            this.label_Task_TotalProgress.Text = "总进度";
-            // 
-            // label_Task_Unit
-            // 
-            this.label_Task_Unit.AutoSize = true;
-            this.label_Task_Unit.Location = new System.Drawing.Point(306, 331);
-            this.label_Task_Unit.Name = "label_Task_Unit";
-            this.label_Task_Unit.Size = new System.Drawing.Size(53, 12);
-            this.label_Task_Unit.TabIndex = 15;
-            this.label_Task_Unit.Text = "进度单位";
             // 
             // notifyIcon_Main
             // 
@@ -793,14 +793,14 @@
             // ToolStripMenuItem_NotifyIcon_Show
             // 
             this.ToolStripMenuItem_NotifyIcon_Show.Name = "ToolStripMenuItem_NotifyIcon_Show";
-            this.ToolStripMenuItem_NotifyIcon_Show.Size = new System.Drawing.Size(180, 22);
+            this.ToolStripMenuItem_NotifyIcon_Show.Size = new System.Drawing.Size(100, 22);
             this.ToolStripMenuItem_NotifyIcon_Show.Text = "显示";
             this.ToolStripMenuItem_NotifyIcon_Show.Click += new System.EventHandler(this.ToolStripMenuItem_NotifyIcon_Show_Click);
             // 
             // ToolStripMenuItem_NotifyIcon_Exit
             // 
             this.ToolStripMenuItem_NotifyIcon_Exit.Name = "ToolStripMenuItem_NotifyIcon_Exit";
-            this.ToolStripMenuItem_NotifyIcon_Exit.Size = new System.Drawing.Size(180, 22);
+            this.ToolStripMenuItem_NotifyIcon_Exit.Size = new System.Drawing.Size(100, 22);
             this.ToolStripMenuItem_NotifyIcon_Exit.Text = "退出";
             this.ToolStripMenuItem_NotifyIcon_Exit.Click += new System.EventHandler(this.ToolStripMenuItem_NotifyIcon_Exit_Click);
             // 
@@ -813,7 +813,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form_Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "个人日程管理 1.6 beta 202009261922 by 李志锐 QQ：859067292";
+            this.Text = "个人日程管理 1.7 beta 202107232135 by 李志锐 QQ：859067292";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form_Main_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_Main_FormClosed);
             this.Load += new System.EventHandler(this.Form_Main_Load);

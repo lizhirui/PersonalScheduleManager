@@ -48,6 +48,56 @@ namespace 个人日程管理
                                                     var args = arg.split('-');
                                                     return new Date(parseInt(args[0],10),parseInt(args[1],10),parseInt(args[2],10));
                                                 }
+
+                                                function newDate(year,month,day)
+                                                {
+                                                    return new Date(year,month - 1,day);
+                                                }
+
+                                                function getYear(date)
+                                                {
+                                                    return date.getFullYear();
+                                                }
+
+                                                function getMonth(date)
+                                                {
+                                                    return date.getMonth() + 1;
+                                                }
+
+                                                function getDay(date)
+                                                {
+                                                    return date.getDate();
+                                                }
+
+                                                function equalDate(date1,date2)
+                                                {
+                                                    return date1.getTime() == date2.getTime();
+                                                }
+
+                                                function nonEqualDate(date1,date2)
+                                                {
+                                                    return date1.getTime() != date2.getTime();
+                                                }
+
+                                                function lessDate(date1,date2)
+                                                {
+                                                    return date1.getTime() < date2.getTime();
+                                                }
+
+                                                function greaterDate(date1,date2)
+                                                {
+                                                    return date1.getTime() > date2.getTime();
+                                                }
+
+                                                function lessEqualDate(date1,date2)
+                                                {
+                                                    return date1.getTime() <= date2.getTime();
+                                                }
+
+                                                function greaterEqualDate(date1,date2)
+                                                {
+                                                    return date1.getTime() >= date2.getTime();
+                                                }
                                                ");
             }
         }
